@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Free PDF Editor</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+
+<style>
+body { margin:0; font-family:Arial; background:#f1f5f9 }
+header { background:#2563eb; color:white; padding:12px; text-align:center }
+.toolbar { padding:10px; background:white; text-align:center }
+.toolbar button { margin:4px; padding:6px 12px }
+
+.pages { display:flex; flex-direction:column; align-items:center; gap:30px; padding:20px }
+
+.page { position:relative; border:1px solid #cbd5f5; background:white }
+
+.page-controls {
+    position:absolute;
+    top:5px;
+    right:5px;
+    z-index:10;
+}
+.page-controls button {
+    margin-left:4px;
+    cursor:pointer;
+}
+
+.pdf-canvas { display:block }
+.draw-layer { position:absolute; top:0; left:0; cursor:crosshair }
+</style>
+</head>
+
+<body>
+
+<header>Free PDF Editor</header>
+
+<div class="toolbar">
+<input type="file" id="fileInput" accept="application/pdf">
+<button onclick="setTool('draw')">✏️ Draw</button>
+<button onclick="setTool('highlight')">🖍️ Highlight</button>
+<button onclick="savePdf()">💾 Save PDF</button>
+</div>
+
+<div id="pages" class="pages"></div>
+
+<script>
+let currentTool=null;
+let pageList=[]; // stores page objects in order
+let originalPdfBytes=null;
+
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+function setTool(t){ currentTool=t }
+
+document.getElementById("fileInput").addEventListener("change",e=>{
+    const file=e.target.files[0];
+    if(!file) return;
+    pageList=[];
+    document.getElementById("pages").innerHTML="";
+
+    const reader=new FileReader();
+    reader.onload=function(){
+        originalPdfBytes=this.result;
+        const bytes=new Uint8Array(this.result);
+        pdfjsLib.getDocument(bytes).promise.then(pdf=>{
+            for(let i=1;i<=pdf.numPages;i++){
+                pdf.getPage(i).then(page=>createPage(page));
+            }
+        });
+    };
+    reader.readAsArrayBuffer(file);
+});
+
+function createPage(page){
+    const scale=1.5;
+    const viewport=page.getViewport({scale});
+
+    const pageDiv=document.createElement("div");
+    pageDiv.className="page";
+
+    const controls=document.createElement("div");
+    controls.className="page-controls";
+    controls.innerHTML=`
+        <button onclick="moveUp(this)">⬆️</button>
+        <button onclick="moveDown(this)">⬇️</button>
+        <button onclick="deletePage(this)">🗑️</button>
+    `;
+    pageDiv.appendChild(controls);
+
+    const pdfCanvas=document.createElement("canvas");
+    pdfCanvas.width=viewport.width;
+    pdfCanvas.height=viewport.height;
+
+    const drawCanvas=document.createElement("canvas");
+    drawCanvas.className="draw-layer";
+    drawCanvas.width=viewport.width;
+    drawCanvas.height=viewport.height;
+
+    pageDiv.appendChild(pdfCanvas);
+    pageDiv.appendChild(drawCanvas);
+    document.getElementById("pages").appendChild(pageDiv);
+
+    page.render({canvasContext:pdfCanvas.getContext("2d"), viewport});
+
+    pageList.push({pageDiv, drawCanvas});
+}
+
+/* PAGE ACTIONS */
+function deletePage(btn){
+    const pageDiv=btn.closest(".page");
+    pageList=pageList.filter(p=>p.pageDiv!==pageDiv);
+    pageDiv.remove();
+}
+
+function moveUp(btn){
+    const pageDiv=btn.closest(".page");
+    const idx=pageList.findIndex(p=>p.pageDiv===pageDiv);
+    if(idx>0){
+        [pageList[idx-1],pageList[idx]]=[pageList[idx],pageList[idx-1]];
+        pageDiv.parentNode.insertBefore(pageDiv, pageDiv.previousElementSibling);
+    }
+}
+
+function moveDown(btn){
+    const pageDiv=btn.closest(".page");
+    const idx=pageList.findIndex(p=>p.pageDiv===pageDiv);
+    if(idx<pageList.length-1){
+        const next=pageDiv.nextElementSibling;
+        pageDiv.parentNode.insertBefore(next, pageDiv);
+        [pageList[idx],pageList[idx+1]]=[pageList[idx+1],pageList[idx]];
+    }
+}
+
+/* SAVE PDF WITH ORDER */
+async function savePdf(){
+    const {PDFDocument}=PDFLib;
+    const pdfDoc=await PDFDocument.load(originalPdfBytes);
+
+    const newPdf=await PDFDocument.create();
+    const pages=pdfDoc.getPages();
+
+    for(let i=0;i<pageList.length;i++){
+        const copied=await newPdf.copyPages(pdfDoc,[i]);
+        newPdf.addPage(copied[0]);
+    }
+
+    const bytes=await newPdf.save();
+    const blob=new Blob([bytes],{type:"application/pdf"});
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download="edited.pdf";
+    a.click();
+}
+</script>
+
+</body>
+</html>
