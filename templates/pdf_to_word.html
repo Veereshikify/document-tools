@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>PDF to Word</title>
+
+<style>
+body {
+  font-family: Arial;
+  background: #f1f5f9;
+  text-align: center;
+  padding: 40px;
+}
+
+.container {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  max-width: 400px;
+  margin: auto;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+button {
+  margin-top: 15px;
+  padding: 10px 20px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #1e40af;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h2>PDF to Word Converter</h2>
+
+  <input type="file" id="fileInput" accept="application/pdf"><br>
+
+  <button onclick="upload()">Convert</button>
+</div>
+
+<script>
+async function upload() {
+  const file = document.getElementById("fileInput").files[0];
+  if (!file) {
+    alert("Select a PDF file");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch("/convert/pdf-to-word", {
+    method: "POST",
+    body: formData
+  });
+
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "converted.docx";
+  a.click();
+}
+</script>
+
+</body>
+</html>

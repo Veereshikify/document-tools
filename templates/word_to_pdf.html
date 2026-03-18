@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Word to PDF</title>
+
+<style>
+body {
+  font-family: Arial;
+  background: #f1f5f9;
+  text-align: center;
+  padding: 40px;
+}
+
+.container {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  max-width: 450px;
+  margin: auto;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+h2 {
+  margin-bottom: 20px;
+}
+
+.drop-area {
+  border: 2px dashed #2563eb;
+  padding: 30px;
+  border-radius: 10px;
+  cursor: pointer;
+  background: #eff6ff;
+  margin-bottom: 15px;
+}
+
+.drop-area.hover {
+  background: #dbeafe;
+}
+
+button {
+  padding: 10px 20px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #1e40af;
+}
+
+.loader {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #2563eb;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  animation: spin 1s linear infinite;
+  margin: 15px auto;
+  display: none;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
+#status {
+  margin-top: 10px;
+  color: green;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h2>Word to PDF Converter</h2>
+
+  <div id="dropArea" class="drop-area">
+    <p>📂 Drag & Drop Word file here</p>
+    <p>or click to upload</p>
+    <input type="file" id="fileInput" accept=".doc,.docx" hidden>
+  </div>
+
+  <button onclick="upload()">Convert</button>
+
+  <div class="loader" id="loader"></div>
+  <p id="status"></p>
+</div>
+
+<script>
+const dropArea = document.getElementById("dropArea");
+const fileInput = document.getElementById("fileInput");
+const status = document.getElementById("status");
+const loader = document.getElementById("loader");
+
+// Click to upload
+dropArea.addEventListener("click", () => fileInput.click());
+
+// Drag over
+dropArea.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  dropArea.classList.add("hover");
+});
+
+// Drag leave
+dropArea.addEventListener("dragleave", () => {
+  dropArea.classList.remove("hover");
+});
+
+// Drop file
+dropArea.addEventListener("drop", (e) => {
+  e.preventDefault();
+  dropArea.classList.remove("hover");
+  fileInput.files = e.dataTransfer.files;
+});
+
+// Upload function
+async function upload() {
+  const file = fileInput.files[0];
+
+  if (!file) {
+    alert("Select a Word file");
+    return;
+  }
+
+  status.innerText = "⏳ Converting... Please wait";
+  loader.style.display = "block";
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch("/convert/word-to-pdf", {
+    method: "POST",
+    body: formData
+  });
+
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "converted.pdf";
+  a.click();
+
+  loader.style.display = "none";
+  status.innerText = "✅ Download complete!";
+}
+</script>
+
+</body>
+</html>

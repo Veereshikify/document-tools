@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Compress PDF</title>
+
+<script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f1f5f9;
+    margin: 0;
+}
+header {
+    background: #2563eb;
+    color: white;
+    padding: 12px;
+    text-align: center;
+    font-size: 18px;
+}
+.container {
+    max-width: 500px;
+    margin: 40px auto;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+}
+input {
+    margin-bottom: 15px;
+}
+button {
+    padding: 10px 16px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 6px;
+}
+button:hover {
+    background: #1e40af;
+}
+.info {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #475569;
+}
+</style>
+</head>
+
+<body>
+
+<header>Compress PDF</header>
+
+<div class="container">
+    <input type="file" id="pdfFile" accept="application/pdf">
+    <br>
+    <button onclick="compressPDF()">Compress & Download</button>
+    <div class="info" id="info"></div>
+</div>
+
+<script>
+async function compressPDF() {
+    const input = document.getElementById("pdfFile");
+    const info = document.getElementById("info");
+
+    if (!input.files.length) {
+        alert("Select a PDF file");
+        return;
+    }
+
+    const file = input.files[0];
+    const originalSize = (file.size / 1024).toFixed(2);
+
+    info.innerText = "Compressing...";
+
+    const bytes = await file.arrayBuffer();
+    const { PDFDocument } = PDFLib;
+
+    const pdfDoc = await PDFDocument.load(bytes, { updateMetadata: false });
+
+    // Re-save PDF (this removes unused objects & compresses streams)
+    const compressedBytes = await pdfDoc.save({
+        useObjectStreams: true,
+        addDefaultPage: false
+    });
+
+    const newSize = (compressedBytes.length / 1024).toFixed(2);
+
+    const blob = new Blob([compressedBytes], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "compressed.pdf";
+    a.click();
+
+    info.innerText =
+        `Original: ${originalSize} KB → Compressed: ${newSize} KB`;
+}
+</script>
+
+</body>
+</html>
