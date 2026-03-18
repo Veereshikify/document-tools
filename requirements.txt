@@ -1,3 +1,8 @@
 fastapi
 uvicorn
+jinja2
 python-multipart
+pillow
+pdf2docx
+pdf2image
+python-pptx
