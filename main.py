@@ -34,7 +34,12 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # =========================================================
 # UI ROUTES (FIXED)
 # =========================================================
+from fastapi.responses import FileResponse
 
+@app.get("/")
+async def home():
+    return FileResponse("templates/index.html")
+    
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
