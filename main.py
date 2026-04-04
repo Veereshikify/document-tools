@@ -39,40 +39,36 @@ from fastapi.responses import FileResponse
 @app.get("/")
 async def home():
     return FileResponse("templates/index.html")
-    
-@app.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
 
 
-@app.get("/pdf_editor", response_class=HTMLResponse)
-async def pdf_editor(request: Request):
-    return templates.TemplateResponse("pdf_editor.html", {"request": request})
+@app.get("/pdf_editor")
+async def pdf_editor():
+    return FileResponse("templates/pdf_editor.html")
 
 
-@app.get("/pdf_merge", response_class=HTMLResponse)
-async def pdf_merge(request: Request):
-    return templates.TemplateResponse("pdf_merge.html", {"request": request})
+@app.get("/pdf_merge")
+async def pdf_merge():
+    return FileResponse("templates/pdf_merge.html")
 
 
-@app.get("/pdf_compress", response_class=HTMLResponse)
-async def pdf_compress(request: Request):
-    return templates.TemplateResponse("pdf_compress.html", {"request": request})
+@app.get("/pdf_compress")
+async def pdf_compress():
+    return FileResponse("templates/pdf_compress.html")
 
 
-@app.get("/pdf-to-word", response_class=HTMLResponse)
-async def pdf_to_word_page(request: Request):
-    return templates.TemplateResponse("pdf_to_word.html", {"request": request})
+@app.get("/pdf-to-word")
+async def pdf_to_word():
+    return FileResponse("templates/pdf_to_word.html")
 
 
-@app.get("/pdf-to-ppt", response_class=HTMLResponse)
-async def pdf_to_ppt_page(request: Request):
-    return templates.TemplateResponse("pdf_to_ppt.html", {"request": request})
+@app.get("/pdf-to-ppt")
+async def pdf_to_ppt():
+    return FileResponse("templates/pdf_to_ppt.html")
 
 
-@app.get("/word-to-pdf", response_class=HTMLResponse)
-async def word_to_pdf_page(request: Request):
-    return templates.TemplateResponse("word_to_pdf.html", {"request": request})
+@app.get("/word-to-pdf")
+async def word_to_pdf():
+    return FileResponse("templates/word_to_pdf.html")
 
 
 # =========================================================
