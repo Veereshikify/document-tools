@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://document-tools-uxsn.onrender.com/sitemap.xml
