@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, Request, Body
+from fastapi import FastAPI, UploadFile, File, Request, Body
 from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -8,11 +8,7 @@ import os
 import io
 import base64
 from PIL import Image
-
-# Optional libraries
 from pdf2docx import Converter
-from pptx import Presentation
-from pptx.util import Inches
 
 app = FastAPI()
 
@@ -41,34 +37,38 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
-    return templates.TemplateResponse(
-        "index.html",
-        context={"request": request}
-    )
+    return templates.TemplateResponse("index.html", {"request": request})
+
 
 @app.get("/pdf_editor", response_class=HTMLResponse)
 async def pdf_editor(request: Request):
     return templates.TemplateResponse("pdf_editor.html", {"request": request})
 
+
 @app.get("/pdf_merge", response_class=HTMLResponse)
 async def pdf_merge(request: Request):
     return templates.TemplateResponse("pdf_merge.html", {"request": request})
+
 
 @app.get("/pdf_compress", response_class=HTMLResponse)
 async def pdf_compress(request: Request):
     return templates.TemplateResponse("pdf_compress.html", {"request": request})
 
+
 @app.get("/pdf-to-word", response_class=HTMLResponse)
 async def pdf_to_word_page(request: Request):
     return templates.TemplateResponse("pdf_to_word.html", {"request": request})
+
 
 @app.get("/pdf-to-ppt", response_class=HTMLResponse)
 async def pdf_to_ppt_page(request: Request):
     return templates.TemplateResponse("pdf_to_ppt.html", {"request": request})
 
+
 @app.get("/word-to-pdf", response_class=HTMLResponse)
 async def word_to_pdf_page(request: Request):
     return templates.TemplateResponse("word_to_pdf.html", {"request": request})
+
 
 # =========================================================
 # API ROUTES
@@ -116,13 +116,13 @@ async def pdf_to_word(file: UploadFile = File(...)):
     return FileResponse(output_path, filename="converted.docx")
 
 
-# ---------- WORD → PDF (DISABLED ONLINE SAFE) ----------
+# ---------- WORD → PDF (DISABLED FOR DEPLOY) ----------
 @app.post("/convert/word-to-pdf")
 async def word_to_pdf():
-    return {"message": "This feature works only in local version"}
+    return {"message": "This feature works only in local environment"}
 
 
-# ---------- PDF → PPT (DISABLED ONLINE SAFE) ----------
+# ---------- PDF → PPT (DISABLED FOR DEPLOY) ----------
 @app.post("/convert/pdf-to-ppt")
 async def pdf_to_ppt():
-    return {"message": "This feature works only in local version"}
+    return {"message": "This feature works only in local environment"}
